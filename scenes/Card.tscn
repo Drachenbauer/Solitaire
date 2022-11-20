@@ -98,8 +98,7 @@ func slide_to(target_pos):
 [sub_resource type="RectangleShape2D" id=2]
 extents = Vector2( 36, 48 )
 
-[node name="Card" type="StaticBody2D"]
-input_pickable = true
+[node name="Card" type="Area2D"]
 script = SubResource( 1 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
