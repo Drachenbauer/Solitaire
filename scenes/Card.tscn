@@ -1,0 +1,118 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://assets/graphics/deck_1.png" type="Texture" id=1]
+[ext_resource path="res://assets/graphics/back.png" type="Texture" id=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node2D
+
+
+# Declare member variables here:
+const CARD_SIZE = Vector2(72, 96)
+
+var value
+var suit
+var id
+var color
+var old_pos
+var is_open = false
+var is_picked = false
+
+onready var front = $Front
+onready var back = $Back
+onready var tween = $Tween
+
+signal flipped
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	pass # Replace with function body.
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(_delta):
+	follow_mouse()
+
+
+func _on_Card_input_event(_viewport, event, _shape_idx):
+	if !get_parent().get_parent().is_card_flipped && !get_parent().get_parent().is_card_sliding:
+		var stack = get_parent().get_parent().storage_stack
+		
+		if stack.has(self):
+			if stack[stack.size()-1] == self:
+				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT && event.pressed:
+					emit_signal(\"flipped\")
+					show_front()
+					to_front()
+					position.x += 104
+					get_parent().get_parent().flip_open_stack.append(self)
+					stack.erase(self)
+		else:
+			if is_open:
+				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
+					if event.pressed:
+						if !is_picked:
+							old_pos = position
+						
+						is_picked = true
+					else:
+						is_picked = false
+						if !old_pos == null:
+							slide_to(old_pos)
+
+
+func set_card_type():
+	var region_pos = id * CARD_SIZE
+	front.region_rect = Rect2(region_pos, CARD_SIZE)
+
+
+func show_front():
+	is_open = true
+	back.visible = !is_open
+
+
+func show_back():
+	is_open = false
+	back.visible = !is_open
+
+
+func to_front():
+	get_parent().move_child(self, get_parent().get_child_count() - 1)
+
+
+func follow_mouse():
+	if is_picked:
+		var mouse_position = get_viewport().get_mouse_position()
+		position = mouse_position + Vector2(0, 40)
+
+
+func slide_to(target_pos):
+	get_parent().get_parent().is_card_sliding = true
+	tween.interpolate_property(self, \"position\",
+	position, target_pos, 0.1,
+	Tween.TRANS_LINEAR, Tween.EASE_IN_OUT)
+	tween.start()
+	yield(tween,\"tween_completed\")
+	get_parent().get_parent().is_card_sliding = false
+"
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 36, 48 )
+
+[node name="Card" type="StaticBody2D"]
+input_pickable = true
+script = SubResource( 1 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource( 2 )
+
+[node name="Front" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+region_enabled = true
+region_rect = Rect2( 0, 0, 72, 96 )
+
+[node name="Back" type="Sprite" parent="."]
+texture = ExtResource( 2 )
+
+[node name="Tween" type="Tween" parent="."]
+
+[connection signal="input_event" from="." to="." method="_on_Card_input_event"]
