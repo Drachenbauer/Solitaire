@@ -40,15 +40,16 @@ func _on_Card_input_event(_viewport, event, _shape_idx):
 			if is_on_top:
 				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
 					if event.pressed:
-						emit_signal(\"flipped\")
-						show_front()
-						change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
 						G.flip_open_stack.append(self)
 						G.storage_stack.erase(self)
+						change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
+						show_front()
+						emit_signal(\"flipped\")
 						
 						if G.flip_open_stack.size() > 1:
 							G.flip_open_stack[G.flip_open_stack.size() - 2].is_on_top = false
 					else:
+						print(\"test else\")
 						G.storage_stack[G.storage_stack.size() - 1].is_on_top = true
 		else:
 			if is_open:
