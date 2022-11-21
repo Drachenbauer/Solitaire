@@ -17,6 +17,7 @@ var color
 var old_pos
 var is_open = false
 var is_picked = false
+var is_on_top = false
 
 onready var front = $Front
 onready var back = $Back
@@ -38,13 +39,15 @@ func _on_Card_input_event(_viewport, event, _shape_idx):
 		var stack = G.storage_stack
 		
 		if stack.has(self):
-			if stack[stack.size()-1] == self:
+			if is_on_top:
 				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT && event.pressed:
 					emit_signal(\"flipped\")
 					show_front()
 					change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
 					G.flip_open_stack.append(self)
 					stack.erase(self)
+					G.flip_open_stack[G.flip_open_stack.size() - 2].is_on_top = false
+					stack[stack.size() - 1].is_on_top = true
 		else:
 			if is_open:
 				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
@@ -99,6 +102,8 @@ func slide_to(target_pos):
 extents = Vector2( 36, 48 )
 
 [node name="Card" type="Area2D"]
+monitoring = false
+monitorable = false
 script = SubResource( 1 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

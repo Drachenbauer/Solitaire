@@ -70,8 +70,12 @@ func deal_bottom_stacks():
 			stack.append(card)
 			G.storage_stack.erase(card)
 			
+			
 			if j == i - 1:
 				card.show_front()
+				card.is_on_top = true
+	
+	G.storage_stack[G.storage_stack.size() - 1].is_on_top = true
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
