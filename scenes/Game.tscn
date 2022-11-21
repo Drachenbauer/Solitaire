@@ -89,7 +89,7 @@ func _is_card_flipped():
 
 
 func cards_back_to_storage():
-	if !G.is_card_flipped && !G.is_card_sliding:
+	if !G.is_card_flipped && !G.is_card_sliding && G.storage_stack.size() == 0:
 		var click_position = get_viewport().get_mouse_position()
 		
 		if click_position.x > 16 && click_position.x < 89:
@@ -101,6 +101,7 @@ func cards_back_to_storage():
 					
 					for card in G.storage_stack:
 						card.change_parent(storage)
+						card.show_back()
 "
 
 [node name="Game" type="Node2D" groups=["table"]]

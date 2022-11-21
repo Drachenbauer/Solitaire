@@ -36,9 +36,7 @@ func _process(_delta):
 
 func _on_Card_input_event(_viewport, event, _shape_idx):
 	if !G.is_card_flipped && !G.is_card_sliding:
-		var stack = G.storage_stack
-		
-		if stack.has(self):
+		if G.storage_stack.has(self):
 			if is_on_top:
 				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
 					if event.pressed:
@@ -46,10 +44,12 @@ func _on_Card_input_event(_viewport, event, _shape_idx):
 						show_front()
 						change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
 						G.flip_open_stack.append(self)
-						stack.erase(self)
-						G.flip_open_stack[G.flip_open_stack.size() - 2].is_on_top = false
+						G.storage_stack.erase(self)
+						
+						if G.flip_open_stack.size() > 1:
+							G.flip_open_stack[G.flip_open_stack.size() - 2].is_on_top = false
 					else:
-						stack[stack.size() - 1].is_on_top = true
+						G.storage_stack[G.storage_stack.size() - 1].is_on_top = true
 		else:
 			if is_open:
 				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
