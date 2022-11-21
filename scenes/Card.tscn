@@ -42,7 +42,7 @@ func _on_Card_input_event(_viewport, event, _shape_idx):
 				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT && event.pressed:
 					emit_signal(\"flipped\")
 					show_front()
-					change_parent(get_parent().get_parent().get_parent().flip_open)
+					change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
 					G.flip_open_stack.append(self)
 					stack.erase(self)
 		else:

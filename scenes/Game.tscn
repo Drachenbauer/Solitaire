@@ -12,6 +12,7 @@ const SUITS = {\"h\" : 0, \"d\" : 2, \"s\" : 4, \"c\" : 6}
 const VALUES = [\"a\", 2, 3, 4, 5, 6, 7, 8, 9, 10, \"j\", \"q\", \"k\"]
 
 onready var card_path = preload(\"Card.tscn\")
+onready var deck = $Deck
 onready var storage = $Deck/Storage
 onready var flip_open = $Deck/FlipOpen
 onready var targets = [$Deck/TargetHearts, $Deck/TargetDiamonds, $Deck/TargetSpades, $Deck/TargetClubs]
@@ -95,10 +96,10 @@ func cards_back_to_storage():
 					G.storage_stack.invert()
 					
 					for card in G.storage_stack:
-						card.change_parent()
+						card.change_parent(storage)
 "
 
-[node name="Game" type="Node2D"]
+[node name="Game" type="Node2D" groups=["table"]]
 script = SubResource( 1 )
 
 [node name="Background" type="Panel" parent="."]
