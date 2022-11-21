@@ -14,6 +14,10 @@ config/name="Solitaire"
 run/main_scene="res://scenes/Game.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+G="*res://Globals.gd"
+
 [display]
 
 window/size/width=728

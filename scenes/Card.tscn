@@ -34,17 +34,16 @@ func _process(_delta):
 
 
 func _on_Card_input_event(_viewport, event, _shape_idx):
-	if !get_parent().get_parent().is_card_flipped && !get_parent().get_parent().is_card_sliding:
-		var stack = get_parent().get_parent().storage_stack
+	if !G.is_card_flipped && !G.is_card_sliding:
+		var stack = G.storage_stack
 		
 		if stack.has(self):
 			if stack[stack.size()-1] == self:
 				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT && event.pressed:
 					emit_signal(\"flipped\")
 					show_front()
-					to_front()
-					position.x += 104
-					get_parent().get_parent().flip_open_stack.append(self)
+					change_parent(get_parent().get_parent().get_parent().flip_open)
+					G.flip_open_stack.append(self)
 					stack.erase(self)
 		else:
 			if is_open:
@@ -75,24 +74,25 @@ func show_back():
 	back.visible = !is_open
 
 
-func to_front():
-	get_parent().move_child(self, get_parent().get_child_count() - 1)
+func change_parent(parent):
+	get_parent().remove_child(self)
+	parent.add_child(self)
 
 
 func follow_mouse():
 	if is_picked:
 		var mouse_position = get_viewport().get_mouse_position()
-		position = mouse_position + Vector2(0, 40)
+		position = -(get_parent().position + get_parent().get_parent().position) + mouse_position + Vector2(0, 40)
 
 
 func slide_to(target_pos):
-	get_parent().get_parent().is_card_sliding = true
+	G.is_card_sliding = true
 	tween.interpolate_property(self, \"position\",
 	position, target_pos, 0.1,
 	Tween.TRANS_LINEAR, Tween.EASE_IN_OUT)
 	tween.start()
 	yield(tween,\"tween_completed\")
-	get_parent().get_parent().is_card_sliding = false
+	G.is_card_sliding = false
 "
 
 [sub_resource type="RectangleShape2D" id=2]
