@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/deck_2.png-0dac78e33af98fec07bdca3da8e27785.stex"
+path="res://.import/deck_11.png-aef292ea12437d6a630ae1d7db05c1cc.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/graphics/deck_2.png"
-dest_files=[ "res://.import/deck_2.png-0dac78e33af98fec07bdca3da8e27785.stex" ]
+source_file="res://assets/graphics/decks/classic/2_corner_icons/deck_11.png"
+dest_files=[ "res://.import/deck_11.png-aef292ea12437d6a630ae1d7db05c1cc.stex" ]
 
 [params]
 

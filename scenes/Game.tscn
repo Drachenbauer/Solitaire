@@ -54,7 +54,6 @@ func put_deck_on_storage():
 	for card in G.storage_stack:
 		storage.add_child(card)
 		card.set_card_type()
-		card.connect(\"flipped\", self, \"_is_card_flipped\") 
 
 
 func deal_bottom_stacks():
@@ -82,10 +81,6 @@ func deal_bottom_stacks():
 func _process(_delta):
 	cards_back_to_storage()
 	G.is_card_flipped = false
-
-
-func _is_card_flipped():
-	G.is_card_flipped = true
 
 
 func cards_back_to_storage():

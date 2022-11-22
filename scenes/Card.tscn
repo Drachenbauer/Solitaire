@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://assets/graphics/deck_1.png" type="Texture" id=1]
+[ext_resource path="res://assets/graphics/decks/classic/2_corner_icons/deck_1.png" type="Texture" id=1]
 [ext_resource path="res://assets/graphics/back.png" type="Texture" id=2]
 
 [sub_resource type="GDScript" id=1]
@@ -23,8 +23,6 @@ onready var front = $Front
 onready var back = $Back
 onready var tween = $Tween
 
-signal flipped
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass # Replace with function body.
@@ -36,33 +34,40 @@ func _process(_delta):
 
 func _on_Card_input_event(_viewport, event, _shape_idx):
 	if !G.is_card_flipped && !G.is_card_sliding:
-		if G.storage_stack.has(self):
-			if is_on_top:
-				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
-					if event.pressed:
-						G.flip_open_stack.append(self)
-						G.storage_stack.erase(self)
-						change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
-						show_front()
-						emit_signal(\"flipped\")
-						
-						if G.flip_open_stack.size() > 1:
-							G.flip_open_stack[G.flip_open_stack.size() - 2].is_on_top = false
-					else:
-						print(\"test else\")
-						G.storage_stack[G.storage_stack.size() - 1].is_on_top = true
-		else:
-			if is_open:
-				if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
-					if event.pressed:
+		if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
+			if event.pressed:
+				if is_open:
 						if !is_picked:
 							old_pos = position
 						
 						is_picked = true
-					else:
-						is_picked = false
-						if !old_pos == null:
-							slide_to(old_pos)
+				else:
+					if G.storage_stack.has(self):
+						if is_on_top:
+							G.is_card_flipped = true
+							G.flip_id = id
+					#else:
+						#if is_on_top:
+			else:
+				if G.flip_id == id:
+					G.flip_id = null
+					print(G.storage_stack.size())
+					change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
+					show_front()
+					
+					G.flip_open_stack.append(self)
+					
+					if G.flip_open_stack.size() > 1:
+						G.flip_open_stack[G.flip_open_stack.size() - 2].is_on_top = false
+					
+					G.storage_stack.erase(self)
+					
+					if G.storage_stack.size()>0:
+						G.storage_stack[G.storage_stack.size() - 1].is_on_top = true
+				else:
+					is_picked = false
+					if !old_pos == null:
+						slide_to(old_pos)
 
 
 func set_card_type():
