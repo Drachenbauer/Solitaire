@@ -37,10 +37,12 @@ func _on_Card_input_event(_viewport, event, _shape_idx):
 		if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
 			if event.pressed:
 				if is_open:
-						if !is_picked:
-							old_pos = position
-						
-						is_picked = true
+					if !is_picked:
+						if G.flip_open_stack.has(self):
+							if is_on_top:
+								old_pos = position
+								is_picked = true
+						#elif
 				else:
 					if G.storage_stack.has(self):
 						if is_on_top:
@@ -51,21 +53,35 @@ func _on_Card_input_event(_viewport, event, _shape_idx):
 			else:
 				if G.flip_id == id:
 					G.flip_id = null
-					print(G.storage_stack.size())
 					change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
 					show_front()
 					
+					if G.flip_open_stack.size() > 0:
+						G.flip_open_stack[G.flip_open_stack.size() - 1].is_on_top = false
+					
 					G.flip_open_stack.append(self)
-					
-					if G.flip_open_stack.size() > 1:
-						G.flip_open_stack[G.flip_open_stack.size() - 2].is_on_top = false
-					
 					G.storage_stack.erase(self)
 					
-					if G.storage_stack.size()>0:
+					if G.storage_stack.size() > 0:
 						G.storage_stack[G.storage_stack.size() - 1].is_on_top = true
 				else:
-					is_picked = false
+					if is_picked:
+						var mouse_position = get_viewport().get_mouse_position()
+						for stack in G.target_stacks:
+							var targets = get_tree().get_nodes_in_group(\"table\")[0].targets
+							var bool_1 = mouse_position.x > targets[stack].position.x - 36
+							var bool_2 = mouse_position.x < targets[stack].position.x + 36
+							var bool_3 = mouse_position.y > targets[stack].position.y - 48
+							var bool_4 = mouse_position.y < targets[stack].position.y + 48
+							if bool_1 && bool_2 && bool_3 && bool_4:
+								if suit == stack:
+									if G.VALUES.find(value) == G.target_stacks[stack].size():
+										position = Vector2(0, 0)
+										change_parent(G.target_stacks[stack])
+										G.target_stacks[stack].append(self)
+										is_picked = false
+										return
+									
 					if !old_pos == null:
 						slide_to(old_pos)
 

@@ -8,9 +8,6 @@ script/source = "extends Node2D
 
 
 # Declare member variables here:
-const SUITS = {\"h\" : 0, \"d\" : 2, \"s\" : 4, \"c\" : 6}
-const VALUES = [\"a\", 2, 3, 4, 5, 6, 7, 8, 9, 10, \"j\", \"q\", \"k\"]
-
 onready var card_path = preload(\"Card.tscn\")
 onready var deck = $Deck
 onready var storage = $Deck/Storage
@@ -27,9 +24,9 @@ func _ready():
 
 
 func generate_deck():
-	for suit in SUITS:
-		for value in VALUES:
-			var value_id = VALUES.find(value)
+	for suit in G.SUITS:
+		for value in G.VALUES:
+			var value_id = G.VALUES.find(value)
 			var coord_base
 			
 			if value_id < 10:
@@ -37,11 +34,17 @@ func generate_deck():
 			else:
 				coord_base = Vector2(value_id - 10, 1)
 			
-			var id = coord_base + Vector2(0, SUITS[suit])
+			var id = coord_base + Vector2(0, G.SUITS[suit])
 			var card = card_path.instance()
-			card.suit = SUITS[suit]
 			card.value = value
+			card.suit = suit
 			card.id = id
+			
+			if G.SUITS[suit] < 3:
+				card.color = \"red\"
+			else:
+				card.color = \"black\"
+			 
 			G.storage_stack.append(card)
 
 
@@ -90,6 +93,7 @@ func cards_back_to_storage():
 		if click_position.x > 16 && click_position.x < 89:
 			if click_position.y > 16 && click_position.y < 113:
 				if Input.is_action_just_pressed(\"Click\"):
+					G.is_card_flipped = true
 					G.storage_stack = G.flip_open_stack.duplicate()
 					G.flip_open_stack.clear()
 					G.storage_stack.invert()
@@ -97,6 +101,9 @@ func cards_back_to_storage():
 					for card in G.storage_stack:
 						card.change_parent(storage)
 						card.show_back()
+						card.is_on_top = false
+					
+					G.storage_stack[G.storage_stack.size() - 1].is_on_top = true
 "
 
 [node name="Game" type="Node2D" groups=["table"]]
