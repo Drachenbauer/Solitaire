@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://assets/graphics/decks/classic/2_corner_icons/deck_1.png" type="Texture" id=1]
+[ext_resource path="res://assets/graphics/decks/kite/2_corner_icons/deck_1.png" type="Texture" id=1]
 [ext_resource path="res://assets/graphics/back.png" type="Texture" id=2]
 
 [sub_resource type="GDScript" id=1]
@@ -14,6 +14,7 @@ var value
 var suit
 var id
 var color
+var containing_stack
 var old_pos
 var is_open = false
 var is_picked = false
@@ -64,9 +65,12 @@ func _on_Card_input_event(_viewport, event, _shape_idx):
 					
 					if G.storage_stack.size() > 0:
 						G.storage_stack[G.storage_stack.size() - 1].is_on_top = true
+					
+					containing_stack = G.flip_open_stack
 				else:
 					if is_picked:
-						var mouse_position = get_viewport().get_mouse_position()
+						var mouse_position = get_viewport().get_mouse_position() - Vector2(52, 64)
+						print(old_pos)
 						for stack in G.target_stacks:
 							var targets = get_tree().get_nodes_in_group(\"table\")[0].targets
 							var bool_1 = mouse_position.x > targets[stack].position.x - 36
@@ -77,13 +81,17 @@ func _on_Card_input_event(_viewport, event, _shape_idx):
 								if suit == stack:
 									if G.VALUES.find(value) == G.target_stacks[stack].size():
 										position = Vector2(0, 0)
-										change_parent(G.target_stacks[stack])
+										change_parent(targets[stack])
 										G.target_stacks[stack].append(self)
+										containing_stack.erase(self)
+										#containing_stack[]
+										containing_stack = stack
 										is_picked = false
 										return
-									
+					
 					if !old_pos == null:
 						slide_to(old_pos)
+						is_picked = false
 
 
 func set_card_type():
