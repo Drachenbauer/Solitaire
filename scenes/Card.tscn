@@ -75,6 +75,8 @@ func release_card():
 					containing_stack.erase(self)
 					containing_stack = stack
 					is_picked = false
+					z_as_relative = true
+					z_index = 0
 					G.is_holding_card = false
 					return
 	
@@ -95,6 +97,8 @@ func release_card():
 				containing_stack = stack
 				add_child_to_stack(G.bottom_stacks[stack_id])
 				is_picked = false
+				z_as_relative = true
+				z_index = 0
 				G.is_holding_card = false
 				return
 			else:
@@ -109,12 +113,16 @@ func release_card():
 						containing_stack = stack
 						add_child_to_stack(G.bottom_stacks[stack_id])
 						is_picked = false
+						z_as_relative = true
+						z_index = 0
 						G.is_holding_card = false
 						return
 	
 	if !old_pos == null:
 		slide_to(old_pos)
 		is_picked = false
+		z_as_relative = true
+		z_index = 0
 		G.is_holding_card = false
 
 
@@ -139,6 +147,8 @@ func follow_mouse():
 	if is_picked:
 		var mouse_position = get_viewport().get_mouse_position()
 		global_position = mouse_position + Vector2(0, 40)
+		z_as_relative = false
+		z_index = VisualServer.CANVAS_ITEM_Z_MAX
 
 
 func slide_to(target_pos):
@@ -155,7 +165,7 @@ func add_child_to_stack(new_stack):
 		new_stack.append(child)
 		child.containing_stack.erase(child)
 		child.containing_stack = new_stack
-		add_child_to_stack(new_stack)
+		child.add_child_to_stack(new_stack)
 "
 
 [sub_resource type="RectangleShape2D" id=2]

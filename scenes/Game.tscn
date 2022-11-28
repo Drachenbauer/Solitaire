@@ -144,7 +144,7 @@ func _on_BottomButton_button_down(button):
 	if stack.size() > 0:
 		for card in stack:
 			var bool_1 = mouse_position.y >= card.global_position.y - 48
-			var bool_2 = mouse_position.y < card.global_position.y - 16
+			var bool_2 = mouse_position.y < card.global_position.y - 32
 			
 			if card == stack[stack.size() - 1]:
 				bool_2 = mouse_position.y < card.global_position.y +48
