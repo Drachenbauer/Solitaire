@@ -88,11 +88,20 @@ func deal_bottom_stacks():
 	
 	for stack in G.bottom_stacks:
 		i += 1
+		var stack_id = G.bottom_stacks.find(stack)
 		
 		for j in range(i):
+			var last_card
 			var card = G.storage_stack[G.storage_stack.size()-1]
-			card.change_parent(bottoms[G.bottom_stacks.find(stack)])
-			card.position.y = (stack.size() * 8)
+			
+			if stack.size() == 0:
+				card.change_parent(bottoms[stack_id])
+			else:
+				last_card = stack[j - 1]
+				last_card.child = card
+				card.change_parent(last_card)
+			
+			card.position.y = 8
 			card.containing_stack = stack
 			stack.append(card)
 			G.storage_stack.erase(card)

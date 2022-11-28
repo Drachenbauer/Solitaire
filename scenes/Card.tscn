@@ -16,6 +16,7 @@ var id
 var color
 var containing_stack
 var old_pos
+var child = null
 var is_open = false
 var is_picked = false
 var is_on_top = false
@@ -86,18 +87,29 @@ func release_card():
 		var bool_4 = mouse_position.y < 257
 		
 		if bool_1 && bool_2 && bool_3 && bool_4:
-			if stack[stack.size() - 1].color != color:
-				if G.VALUES.find(value) == G.VALUES.find(stack[stack.size() - 1].value) - 1:
-					var y_pos = stack[stack.size() - 1].position.y + 16
-					position = Vector2(0, y_pos)
-					change_parent(bottoms[stack_id])
-					G.bottom_stacks[stack_id].append(self)
-					containing_stack.erase(self)
-					containing_stack = stack
-					is_picked = false
-					G.is_holding_card = false
-					return
-		
+			if stack.size() == 0:
+				position = Vector2(0, 0)
+				change_parent(bottoms[stack_id])
+				G.bottom_stacks[stack_id].append(self)
+				containing_stack.erase(self)
+				containing_stack = stack
+				is_picked = false
+				G.is_holding_card = false
+				return
+			else:
+				var last_card = stack[stack.size() - 1]
+				if last_card.color != color:
+					if G.VALUES.find(value) == G.VALUES.find(stack[stack.size() - 1].value) - 1:
+						position = Vector2(0, 16)
+						last_card.child = self
+						change_parent(last_card)
+						G.bottom_stacks[stack_id].append(self)
+						containing_stack.erase(self)
+						containing_stack = stack
+						is_picked = false
+						G.is_holding_card = false
+						return
+	
 	if !old_pos == null:
 		slide_to(old_pos)
 		is_picked = false
@@ -115,6 +127,8 @@ func show_back():
 
 
 func change_parent(parent):
+	if get_parent().has_method(\"change_parent\"):
+		get_parent().child = null
 	get_parent().remove_child(self)
 	parent.add_child(self)
 
@@ -122,8 +136,7 @@ func change_parent(parent):
 func follow_mouse():
 	if is_picked:
 		var mouse_position = get_viewport().get_mouse_position()
-		var parent_position = get_parent().position + get_parent().get_parent().position
-		position = (mouse_position - parent_position) + Vector2(0, 40)
+		global_position = mouse_position + Vector2(0, 40)
 
 
 func slide_to(target_pos):
