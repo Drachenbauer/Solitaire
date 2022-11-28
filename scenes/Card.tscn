@@ -24,79 +24,84 @@ onready var front = $Front
 onready var back = $Back
 onready var tween = $Tween
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	pass # Replace with function body.
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
 	follow_mouse()
 
 
-func _on_Card_input_event(_viewport, event, _shape_idx):
-	if !G.is_card_flipped && !G.is_card_sliding:
-		if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
-			if event.pressed:
-				if is_open:
-					if !is_picked:
-						if G.flip_open_stack.has(self):
-							if is_on_top:
-								old_pos = position
-								is_picked = true
-						#elif
-				else:
-					if G.storage_stack.has(self):
-						if is_on_top:
-							G.is_card_flipped = true
-							G.flip_id = id
-					#else:
-						#if is_on_top:
-			else:
-				if G.flip_id == id:
-					G.flip_id = null
-					change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
-					show_front()
-					
-					if G.flip_open_stack.size() > 0:
-						G.flip_open_stack[G.flip_open_stack.size() - 1].is_on_top = false
-					
-					G.flip_open_stack.append(self)
-					G.storage_stack.erase(self)
-					
-					if G.storage_stack.size() > 0:
-						G.storage_stack[G.storage_stack.size() - 1].is_on_top = true
-					
-					containing_stack = G.flip_open_stack
-				else:
-					if is_picked:
-						var mouse_position = get_viewport().get_mouse_position() - Vector2(52, 64)
-						print(old_pos)
-						for stack in G.target_stacks:
-							var targets = get_tree().get_nodes_in_group(\"table\")[0].targets
-							var bool_1 = mouse_position.x > targets[stack].position.x - 36
-							var bool_2 = mouse_position.x < targets[stack].position.x + 36
-							var bool_3 = mouse_position.y > targets[stack].position.y - 48
-							var bool_4 = mouse_position.y < targets[stack].position.y + 48
-							if bool_1 && bool_2 && bool_3 && bool_4:
-								if suit == stack:
-									if G.VALUES.find(value) == G.target_stacks[stack].size():
-										position = Vector2(0, 0)
-										change_parent(targets[stack])
-										G.target_stacks[stack].append(self)
-										containing_stack.erase(self)
-										#containing_stack[]
-										containing_stack = stack
-										is_picked = false
-										return
-					
-					if !old_pos == null:
-						slide_to(old_pos)
-						is_picked = false
-
-
 func set_card_type():
 	var region_pos = id * CARD_SIZE
 	front.region_rect = Rect2(region_pos, CARD_SIZE)
+
+
+func storage_flip_open():
+	change_parent(get_tree().get_nodes_in_group(\"table\")[0].flip_open)
+	show_front()
+	
+	is_on_top = true
+	
+	if G.flip_open_stack.size() > 0:
+		G.flip_open_stack[G.flip_open_stack.size() - 1].is_on_top = false
+	
+	G.flip_open_stack.append(self)
+	G.storage_stack.erase(self)
+	
+	containing_stack = G.flip_open_stack
+
+
+func hold_card():
+	is_picked = true
+	G.is_holding_card = true
+	old_pos = position
+
+
+func release_card():
+	var mouse_position = get_viewport().get_mouse_position() - Vector2(52, 64)
+	
+	for stack in G.target_stacks:
+		var targets = get_tree().get_nodes_in_group(\"table\")[0].targets
+		var bool_1 = mouse_position.x > targets[stack].position.x - 36
+		var bool_2 = mouse_position.x < targets[stack].position.x + 36
+		var bool_3 = mouse_position.y > targets[stack].position.y - 48
+		var bool_4 = mouse_position.y < targets[stack].position.y + 48
+		
+		if bool_1 && bool_2 && bool_3 && bool_4:
+			if suit == stack:
+				if G.VALUES.find(value) == G.target_stacks[stack].size():
+					position = Vector2(0, 0)
+					change_parent(targets[stack])
+					G.target_stacks[stack].append(self)
+					containing_stack.erase(self)
+					containing_stack = stack
+					is_picked = false
+					G.is_holding_card = false
+					return
+	
+	for stack in G.bottom_stacks:
+		var bottoms = get_tree().get_nodes_in_group(\"table\")[0].bottoms
+		var stack_id = G.bottom_stacks.find(stack)
+		var bool_1 = mouse_position.x > bottoms[stack_id].position.x - 36
+		var bool_2 = mouse_position.x < bottoms[stack_id].position.x + 36
+		var bool_3 = mouse_position.y > bottoms[stack_id].position.y - 48
+		var bool_4 = mouse_position.y < 257
+		
+		if bool_1 && bool_2 && bool_3 && bool_4:
+			if stack[stack.size() - 1].color != color:
+				if G.VALUES.find(value) == G.VALUES.find(stack[stack.size() - 1].value) - 1:
+					var y_pos = stack[stack.size() - 1].position.y + 16
+					position = Vector2(0, y_pos)
+					change_parent(bottoms[stack_id])
+					G.bottom_stacks[stack_id].append(self)
+					containing_stack.erase(self)
+					containing_stack = stack
+					is_picked = false
+					G.is_holding_card = false
+					return
+		
+	if !old_pos == null:
+		slide_to(old_pos)
+		is_picked = false
+		G.is_holding_card = false
 
 
 func show_front():
@@ -117,7 +122,8 @@ func change_parent(parent):
 func follow_mouse():
 	if is_picked:
 		var mouse_position = get_viewport().get_mouse_position()
-		position = -(get_parent().position + get_parent().get_parent().position) + mouse_position + Vector2(0, 40)
+		var parent_position = get_parent().position + get_parent().get_parent().position
+		position = (mouse_position - parent_position) + Vector2(0, 40)
 
 
 func slide_to(target_pos):
@@ -133,7 +139,7 @@ func slide_to(target_pos):
 [sub_resource type="RectangleShape2D" id=2]
 extents = Vector2( 36, 48 )
 
-[node name="Card" type="Area2D"]
+[node name="Card" type="Area2D" groups=["cards"]]
 monitoring = false
 monitorable = false
 script = SubResource( 1 )
@@ -150,5 +156,3 @@ region_rect = Rect2( 0, 0, 72, 96 )
 texture = ExtResource( 2 )
 
 [node name="Tween" type="Tween" parent="."]
-
-[connection signal="input_event" from="." to="." method="_on_Card_input_event"]
