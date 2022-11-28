@@ -100,8 +100,8 @@ func deal_bottom_stacks():
 				last_card = stack[j - 1]
 				last_card.child = card
 				card.change_parent(last_card)
+				card.position.y = 8
 			
-			card.position.y = 8
 			card.containing_stack = stack
 			stack.append(card)
 			G.storage_stack.erase(card)
@@ -140,9 +140,18 @@ func _on_TargetButton_button_down(button):
 
 func _on_BottomButton_button_down(button):
 	var stack = bottom_buttons[button]
+	var mouse_position = get_viewport().get_mouse_position()
 	if stack.size() > 0:
-		if stack[stack.size() - 1].is_open:
-			stack[stack.size() - 1].hold_card()
+		for card in stack:
+			var bool_1 = mouse_position.y >= card.global_position.y - 48
+			var bool_2 = mouse_position.y < card.global_position.y - 16
+			
+			if card == stack[stack.size() - 1]:
+				bool_2 = mouse_position.y < card.global_position.y +48
+			
+			if bool_1 && bool_2:
+				if card.is_open:
+					card.hold_card()
 
 
 func _on_BottomButton_button_pressed(button):

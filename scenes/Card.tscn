@@ -93,6 +93,7 @@ func release_card():
 				G.bottom_stacks[stack_id].append(self)
 				containing_stack.erase(self)
 				containing_stack = stack
+				add_child_to_stack(G.bottom_stacks[stack_id])
 				is_picked = false
 				G.is_holding_card = false
 				return
@@ -106,6 +107,7 @@ func release_card():
 						G.bottom_stacks[stack_id].append(self)
 						containing_stack.erase(self)
 						containing_stack = stack
+						add_child_to_stack(G.bottom_stacks[stack_id])
 						is_picked = false
 						G.is_holding_card = false
 						return
@@ -147,6 +149,13 @@ func slide_to(target_pos):
 	tween.start()
 	yield(tween,\"tween_completed\")
 	G.is_card_sliding = false
+
+func add_child_to_stack(new_stack):
+	if child != null:
+		new_stack.append(child)
+		child.containing_stack.erase(child)
+		child.containing_stack = new_stack
+		add_child_to_stack(new_stack)
 "
 
 [sub_resource type="RectangleShape2D" id=2]
