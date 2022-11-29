@@ -119,6 +119,19 @@ func release_card():
 		values_to_default()
 
 
+func send_to_target():
+	for stack_id in G.target_stacks:
+		var targets = get_tree().get_nodes_in_group(\"table\")[0].targets
+		var stack = G.target_stacks[stack_id]
+		
+		if suit == stack_id:
+			if G.VALUES.find(value) == stack.size():
+				position = Vector2(0, 0)
+				change_parent(stack, targets[stack_id])
+				add_to_stack(stack)
+				values_to_default()
+
+
 func show_front():
 	is_open = true
 	back.visible = !is_open

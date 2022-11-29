@@ -118,6 +118,16 @@ func _process(_delta):
 					card.release_card()
 
 
+func double_click_detect():
+	var new_click = OS.get_ticks_msec()
+	
+	if new_click - G.last_click <= G.double_click_speed:
+		return true
+	
+	G.last_click = new_click
+	return false
+
+
 func _on_StorageButton_pressed():
 	if !G.is_card_sliding:
 		if G.storage_stack.size() > 0:
@@ -129,7 +139,12 @@ func _on_StorageButton_pressed():
 func _on_FlipOpenButton_button_down():
 	if !G.is_card_sliding:
 		if G.flip_open_stack.size() > 0:
-			G.flip_open_stack[G.flip_open_stack.size() - 1].hold_card()
+			var card = G.flip_open_stack[G.flip_open_stack.size() - 1]
+			
+			if double_click_detect():
+				card.send_to_target()
+			else:
+				card.hold_card()
 
 
 func _on_TargetButton_button_down(button):
@@ -145,16 +160,25 @@ func _on_BottomButton_button_down(button):
 		var mouse_position = get_viewport().get_mouse_position()
 		
 		if stack.size() > 0:
-			for card in stack:
-				var bool_1 = mouse_position.y > card.global_position.y - 49
-				var bool_2 = mouse_position.y < card.global_position.y - 31
-				
-				if card == stack[stack.size() - 1]:
-					bool_2 = mouse_position.y < card.global_position.y + 49
-				
+			var last_card = stack[stack.size() - 1]
+			var bool_1 = mouse_position.y > last_card.global_position.y - 49
+			var bool_2 = mouse_position.y < last_card.global_position.y + 49
+			#print(double_click_detect())
+			
+			if double_click_detect():
 				if bool_1 && bool_2:
-					if card.is_open:
-						card.hold_card()
+					last_card.send_to_target()
+			else:
+				for card in stack:
+					bool_1 = mouse_position.y > card.global_position.y - 49
+					bool_2 = mouse_position.y < card.global_position.y - 31
+					
+					if card == stack[stack.size() - 1]:
+						bool_2 = mouse_position.y < card.global_position.y + 49
+					
+					if bool_1 && bool_2:
+						if card.is_open:
+							card.hold_card()
 
 
 func _on_BottomButton_button_pressed(button):
