@@ -14,6 +14,8 @@ onready var storage = $Deck/Storage
 onready var flip_open = $Deck/FlipOpen
 onready var targets = {\"h\" : $Deck/TargetHearts, \"d\" : $Deck/TargetDiamonds, \"s\" : $Deck/TargetSpades, \"c\" : $Deck/TargetClubs}
 onready var bottoms = [$Deck/Bottom1, $Deck/Bottom2, $Deck/Bottom3, $Deck/Bottom4, $Deck/Bottom5, $Deck/Bottom6, $Deck/Bottom7]
+onready var storage_button = $StackButtons/StorageButton
+onready var flip_open_button = $StackButtons/FlipOpenButton
 onready var target_buttons = {$StackButtons/TargetHeartsButton : G.target_stacks[\"h\"],
 								$StackButtons/TargetDiamondsButton : G.target_stacks[\"d\"],
 								$StackButtons/TargetSpadesButton : G.target_stacks[\"s\"],
@@ -37,11 +39,12 @@ func _ready():
 
 func connect_button_signals():
 	for button in get_tree().get_nodes_in_group(\"target_buttons\"):
-		button.connect(\"button_down\", self, \"_on_TargetButton_button_down\",[button])
+		button.connect(\"button_down\", self, \"_on_TargetButton_button_down\", [button])
+		button.connect(\"mouse_entered\", self, \"_on_TargetButton_mouse_entered\", [button])
 	
 	for button in get_tree().get_nodes_in_group(\"bottom_buttons\"):
-		button.connect(\"button_down\", self, \"_on_BottomButton_button_down\",[button])
-		button.connect(\"pressed\", self, \"_on_BottomButton_button_pressed\",[button])
+		button.connect(\"button_down\", self, \"_on_BottomButton_button_down\", [button])
+		button.connect(\"pressed\", self, \"_on_BottomButton_button_pressed\", [button])
 
 
 
@@ -68,7 +71,7 @@ func generate_deck():
 				card.color = \"black\"
 			
 			card.containing_stack = G.storage_stack
-			 
+			
 			G.storage_stack.append(card)
 
 
@@ -92,19 +95,16 @@ func deal_bottom_stacks():
 		
 		for j in range(i):
 			var last_card
-			var card = G.storage_stack[G.storage_stack.size()-1]
+			var card = G.storage_stack[G.storage_stack.size() - 1]
 			
 			if stack.size() == 0:
-				card.change_parent(bottoms[stack_id])
+				card.change_parent(stack, bottoms[stack_id])
 			else:
 				last_card = stack[j - 1]
-				last_card.child = card
-				card.change_parent(last_card)
+				card.change_parent(stack, last_card)
 				card.position.y = 8
 			
-			card.containing_stack = stack
-			stack.append(card)
-			G.storage_stack.erase(card)
+			card.add_to_stack(stack)
 			
 			
 			if j == i - 1:
@@ -113,6 +113,9 @@ func deal_bottom_stacks():
 
 
 func _process(_delta):
+	for button in bottom_buttons:
+		bottom_button_set_cursor(button)
+	
 	if Input.is_action_just_released(\"Click\"):
 		if G.is_holding_card:
 			for card in get_tree().get_nodes_in_group(\"cards\"):
@@ -121,56 +124,110 @@ func _process(_delta):
 
 
 func _on_StorageButton_pressed():
-	if G.storage_stack.size() > 0:
-		G.storage_stack[G.storage_stack.size() - 1].storage_flip_open()
-	else:
-		cards_back_to_storage()
+	if !G.is_card_sliding:
+		if G.storage_stack.size() > 0:
+			G.storage_stack[G.storage_stack.size() - 1].storage_flip_open()
+		else:
+			cards_back_to_storage()
 
 
 func _on_FlipOpenButton_button_down():
-	if G.flip_open_stack.size() > 0:
-		G.flip_open_stack[G.flip_open_stack.size() - 1].hold_card()
+	if !G.is_card_sliding:
+		if G.flip_open_stack.size() > 0:
+			G.flip_open_stack[G.flip_open_stack.size() - 1].hold_card()
 
 
 func _on_TargetButton_button_down(button):
-	var stack = target_buttons[button]
-	if stack.size() > 0:
-		stack[stack.size() - 1].hold_card()
+	if !G.is_card_sliding:
+		var stack = target_buttons[button]
+		if stack.size() > 0:
+			stack[stack.size() - 1].hold_card()
 
 
 func _on_BottomButton_button_down(button):
-	var stack = bottom_buttons[button]
-	var mouse_position = get_viewport().get_mouse_position()
-	if stack.size() > 0:
-		for card in stack:
-			var bool_1 = mouse_position.y >= card.global_position.y - 48
-			var bool_2 = mouse_position.y < card.global_position.y - 32
-			
-			if card == stack[stack.size() - 1]:
-				bool_2 = mouse_position.y < card.global_position.y +48
-			
-			if bool_1 && bool_2:
-				if card.is_open:
-					card.hold_card()
+	if !G.is_card_sliding:
+		var stack = bottom_buttons[button]
+		var mouse_position = get_viewport().get_mouse_position()
+		
+		if stack.size() > 0:
+			for card in stack:
+				var bool_1 = mouse_position.y > card.global_position.y - 49
+				var bool_2 = mouse_position.y < card.global_position.y - 31
+				
+				if card == stack[stack.size() - 1]:
+					bool_2 = mouse_position.y < card.global_position.y + 49
+				
+				if bool_1 && bool_2:
+					if card.is_open:
+						card.hold_card()
 
 
 func _on_BottomButton_button_pressed(button):
-	var stack = bottom_buttons[button]
+	if !G.is_card_sliding:
+		var stack = bottom_buttons[button]
+		var mouse_position = get_viewport().get_mouse_position()
+		var card = stack[stack.size() - 1]
+		
+		if stack.size() > 0:
+			var bool_1 = mouse_position.y > card.global_position.y - 49
+			var bool_2 = mouse_position.y < card.global_position.y + 49
+			
+			if bool_1 && bool_2:
+				if !card.is_open:
+					card.show_front()
+
+
+func _on_StorageButton_mouse_entered():
+	if G.storage_stack.size() + G.flip_open_stack.size() > 0:
+		storage_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	else:
+		storage_button.mouse_default_cursor_shape = Control.CURSOR_ARROW
+
+func _on_FlipOpenButton_mouse_entered():
+	if G.flip_open_stack.size() > 0:
+		flip_open_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	else:
+		flip_open_button.mouse_default_cursor_shape = Control.CURSOR_ARROW
+
+func _on_TargetButton_mouse_entered(button):
+	var stack = target_buttons[button]
+	
 	if stack.size() > 0:
-		if !stack[stack.size() - 1].is_open:
-			stack[stack.size() - 1].show_front()
+		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	else:
+		button.mouse_default_cursor_shape = Control.CURSOR_ARROW
+
+
+func bottom_button_set_cursor(button):
+	var stack = bottom_buttons[button]
+	var mouse_position = get_viewport().get_mouse_position()
+	
+	if stack.size() > 0:
+		var last_card = stack[stack.size() - 1]
+		
+		for card in stack:
+			var bool_1 = mouse_position.y > card.global_position.y - 49
+			var bool_2 = mouse_position.y < card.global_position.y - 31
+			
+			if card == last_card:
+				bool_2 = mouse_position.y < card.global_position.y + 49
+			
+			if bool_1 && bool_2:
+				if card.is_open || card == last_card:
+					button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+				else:
+					button.mouse_default_cursor_shape = Control.CURSOR_ARROW
 
 
 func cards_back_to_storage():
-	if !G.is_card_sliding:
-		G.storage_stack = G.flip_open_stack.duplicate()
-		G.flip_open_stack.clear()
-		G.storage_stack.invert()
-		
-		for card in G.storage_stack:
-			card.change_parent(storage)
-			card.show_back()
-			card.containing_stack = G.storage_stack
+	G.storage_stack = G.flip_open_stack.duplicate()
+	G.flip_open_stack.clear()
+	G.storage_stack.invert()
+	
+	for card in G.storage_stack:
+		card.change_parent(G.storage_stack, storage)
+		card.show_back()
+		card.containing_stack = G.storage_stack
 "
 
 [node name="Game" type="Node2D" groups=["table"]]
@@ -314,14 +371,12 @@ margin_left = 16.0
 margin_top = 16.0
 margin_right = 88.0
 margin_bottom = 112.0
-mouse_default_cursor_shape = 2
 
 [node name="FlipOpenButton" type="TextureButton" parent="StackButtons"]
 margin_left = 120.0
 margin_top = 16.0
 margin_right = 192.0
 margin_bottom = 112.0
-mouse_default_cursor_shape = 2
 
 [node name="TargetHeartsButton" type="TextureButton" parent="StackButtons" groups=["target_buttons"]]
 margin_left = 328.0
@@ -389,5 +444,7 @@ margin_top = 144.0
 margin_right = 712.0
 margin_bottom = 512.0
 
+[connection signal="mouse_entered" from="StackButtons/StorageButton" to="." method="_on_StorageButton_mouse_entered"]
 [connection signal="pressed" from="StackButtons/StorageButton" to="." method="_on_StorageButton_pressed"]
 [connection signal="button_down" from="StackButtons/FlipOpenButton" to="." method="_on_FlipOpenButton_button_down"]
+[connection signal="mouse_entered" from="StackButtons/FlipOpenButton" to="." method="_on_FlipOpenButton_mouse_entered"]
