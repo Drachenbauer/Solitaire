@@ -37,42 +37,36 @@ func set_card_type():
 func storage_flip_open():
 	var parent =  get_tree().get_nodes_in_group(\"table\")[0].flip_open
 	change_parent(G.flip_open_stack, parent)
+	add_to_stack(G.flip_open_stack)
 	show_front()
-	
-	if G.flip_open_stack.size() > 0:
-		G.flip_open_stack[G.flip_open_stack.size() - 1].is_on_top = false
-	
-	G.flip_open_stack.append(self)
-	G.storage_stack.erase(self)
-	
-	containing_stack = G.flip_open_stack
 
 
 func hold_card():
+	old_pos = position
 	z_as_relative = false
 	z_index = VisualServer.CANVAS_ITEM_Z_MAX
 	is_picked = true
 	G.is_holding_card = true
-	old_pos = position
 
 
 func release_card():
 	var mouse_position = get_viewport().get_mouse_position()
 	
-	for stack in G.target_stacks:
+	for stack_id in G.target_stacks:
 		var targets = get_tree().get_nodes_in_group(\"table\")[0].targets
-		var bool_1 = mouse_position.x > targets[stack].global_position.x - 37
-		var bool_2 = mouse_position.x < targets[stack].global_position.x + 37
-		var bool_3 = mouse_position.y > targets[stack].global_position.y - 49
-		var bool_4 = mouse_position.y < targets[stack].global_position.y + 49
+		var stack = G.target_stacks[stack_id]
+		var bool_1 = mouse_position.x > targets[stack_id].global_position.x - 37
+		var bool_2 = mouse_position.x < targets[stack_id].global_position.x + 37
+		var bool_3 = mouse_position.y > targets[stack_id].global_position.y - 49
+		var bool_4 = mouse_position.y < targets[stack_id].global_position.y + 49
 		
 		if bool_1 && bool_2 && bool_3 && bool_4:
 			if child == null:
-				if suit == stack:
-					if G.VALUES.find(value) == G.target_stacks[stack].size():
-						position.y = 0
-						change_parent(G.target_stacks[stack], targets[stack])
-						add_to_stack(G.target_stacks[stack])
+				if suit == stack_id:
+					if G.VALUES.find(value) == stack.size():
+						position = Vector2(0, 0)
+						change_parent(stack, targets[stack_id])
+						add_to_stack(stack)
 						values_to_default()
 						return
 	
@@ -99,7 +93,7 @@ func release_card():
 		
 		if bool_1 && bool_2 && bool_3 && bool_4:
 			if stack.size() == 0:
-				position.y = 0
+				position = Vector2(0, 0)
 				change_parent(stack, bottoms[stack_id])
 				add_to_stack(stack)
 				values_to_default()
@@ -108,13 +102,13 @@ func release_card():
 				if last_card.is_open:
 					if last_card.color != color:
 						if G.VALUES.find(value) == G.VALUES.find(stack[stack.size() - 1].value) - 1:
-							position.y = 16
+							position = Vector2(0, 16)
 							change_parent(stack, last_card)
 							add_to_stack(stack)
 							values_to_default()
 							return
 				else:
-					position.y = 8
+					position = Vector2(0, 8)
 					change_parent(stack, last_card)
 					add_to_stack(stack)
 					values_to_default()
