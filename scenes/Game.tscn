@@ -38,6 +38,7 @@ func _ready():
 
 
 func connect_button_signals():
+	
 	for button in get_tree().get_nodes_in_group(\"target_buttons\"):
 		button.connect(\"button_down\", self, \"_on_TargetButton_button_down\", [button])
 		button.connect(\"mouse_entered\", self, \"_on_TargetButton_mouse_entered\", [button])
@@ -45,6 +46,7 @@ func connect_button_signals():
 	for button in get_tree().get_nodes_in_group(\"bottom_buttons\"):
 		button.connect(\"button_down\", self, \"_on_BottomButton_button_down\", [button])
 		button.connect(\"pressed\", self, \"_on_BottomButton_button_pressed\", [button])
+		button.connect(\"gui_input\", self, \"_on_BottomButton_gui_input\", [button])
 
 
 
@@ -110,22 +112,12 @@ func deal_bottom_stacks():
 func _process(_delta):
 	for button in bottom_buttons:
 		bottom_button_set_cursor(button)
-	
-	if Input.is_action_just_released(\"Click\"):
+		
+	if Input.is_action_just_released(\"click\"):
 		if G.is_holding_card:
 			for card in get_tree().get_nodes_in_group(\"cards\"):
 				if card.is_picked:
 					card.release_card()
-
-
-func double_click_detect():
-	var new_click = OS.get_ticks_msec()
-	
-	if new_click - G.last_click <= G.double_click_speed:
-		return true
-	
-	G.last_click = new_click
-	return false
 
 
 func _on_StorageButton_pressed():
@@ -140,11 +132,7 @@ func _on_FlipOpenButton_button_down():
 	if !G.is_card_sliding:
 		if G.flip_open_stack.size() > 0:
 			var card = G.flip_open_stack[G.flip_open_stack.size() - 1]
-			
-			if double_click_detect():
-				card.send_to_target()
-			else:
-				card.hold_card()
+			card.hold_card()
 
 
 func _on_TargetButton_button_down(button):
@@ -160,25 +148,16 @@ func _on_BottomButton_button_down(button):
 		var mouse_position = get_viewport().get_mouse_position()
 		
 		if stack.size() > 0:
-			var last_card = stack[stack.size() - 1]
-			var bool_1 = mouse_position.y > last_card.global_position.y - 49
-			var bool_2 = mouse_position.y < last_card.global_position.y + 49
-			#print(double_click_detect())
-			
-			if double_click_detect():
+			for card in stack:
+				var bool_1 = mouse_position.y > card.global_position.y - 49
+				var bool_2 = mouse_position.y < card.global_position.y - 31
+				
+				if card == stack[stack.size() - 1]:
+					bool_2 = mouse_position.y < card.global_position.y + 49
+				
 				if bool_1 && bool_2:
-					last_card.send_to_target()
-			else:
-				for card in stack:
-					bool_1 = mouse_position.y > card.global_position.y - 49
-					bool_2 = mouse_position.y < card.global_position.y - 31
-					
-					if card == stack[stack.size() - 1]:
-						bool_2 = mouse_position.y < card.global_position.y + 49
-					
-					if bool_1 && bool_2:
-						if card.is_open:
-							card.hold_card()
+					if card.is_open:
+						card.hold_card()
 
 
 func _on_BottomButton_button_pressed(button):
@@ -194,6 +173,27 @@ func _on_BottomButton_button_pressed(button):
 			if bool_1 && bool_2:
 				if !card.is_open:
 					card.show_front()
+
+
+func _on_FlipOpenButton_gui_input(event):
+	if event is InputEventMouseButton && event.doubleclick:
+		var card = G.flip_open_stack[G.flip_open_stack.size() - 1]
+		card.send_to_target()
+
+
+func _on_BottomButton_gui_input(event, button):
+	if event is InputEventMouseButton && event.doubleclick:
+		var stack = bottom_buttons[button]
+		var mouse_position = get_viewport().get_mouse_position()
+		
+		if stack.size() > 0:
+			var card = stack[stack.size() - 1]
+			var bool_1 = mouse_position.y > card.global_position.y - 49
+			var bool_2 = mouse_position.y < card.global_position.y + 49
+			
+			if bool_1 && bool_2:
+				if card.is_open:
+					card.send_to_target()
 
 
 func _on_StorageButton_mouse_entered():
@@ -466,4 +466,5 @@ margin_bottom = 512.0
 [connection signal="mouse_entered" from="StackButtons/StorageButton" to="." method="_on_StorageButton_mouse_entered"]
 [connection signal="pressed" from="StackButtons/StorageButton" to="." method="_on_StorageButton_pressed"]
 [connection signal="button_down" from="StackButtons/FlipOpenButton" to="." method="_on_FlipOpenButton_button_down"]
+[connection signal="gui_input" from="StackButtons/FlipOpenButton" to="." method="_on_FlipOpenButton_gui_input"]
 [connection signal="mouse_entered" from="StackButtons/FlipOpenButton" to="." method="_on_FlipOpenButton_mouse_entered"]
