@@ -12,6 +12,3 @@ var bottom_stacks = [[], [], [], [], [], [], []]
 var is_holding_card = false
 var is_card_sliding = false
 var flip_id
-
-var double_click_speed = 250
-var last_click = 0.0
