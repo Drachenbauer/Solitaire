@@ -87,29 +87,24 @@ func put_deck_on_storage():
 
 
 func deal_bottom_stacks():
-	var i = 0
-	
 	for stack in G.bottom_stacks:
-		i += 1
 		var stack_id = G.bottom_stacks.find(stack)
 		
-		for j in range(i):
+		for i in stack_id + 1:
 			var last_card
 			var card = G.storage_stack[G.storage_stack.size() - 1]
 			
 			if stack.size() == 0:
 				card.change_parent(stack, bottoms[stack_id])
 			else:
-				last_card = stack[j - 1]
+				last_card = stack[i - 1]
 				card.change_parent(stack, last_card)
 				card.position.y = 8
 			
 			card.add_to_stack(stack)
 			
-			
-			if j == i - 1:
+			if i == stack_id:
 				card.show_front()
-				card.is_on_top = true
 
 
 func _process(_delta):

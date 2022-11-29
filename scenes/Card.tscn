@@ -19,7 +19,6 @@ var old_pos
 var child = null
 var is_open = false
 var is_picked = false
-var is_on_top = false
 
 onready var front = $Front
 onready var back = $Back
@@ -40,8 +39,6 @@ func storage_flip_open():
 	change_parent(G.flip_open_stack, parent)
 	show_front()
 	
-	is_on_top = true
-	
 	if G.flip_open_stack.size() > 0:
 		G.flip_open_stack[G.flip_open_stack.size() - 1].is_on_top = false
 	
@@ -52,6 +49,8 @@ func storage_flip_open():
 
 
 func hold_card():
+	z_as_relative = false
+	z_index = VisualServer.CANVAS_ITEM_Z_MAX
 	is_picked = true
 	G.is_holding_card = true
 	old_pos = position
@@ -167,8 +166,6 @@ func follow_mouse():
 	if is_picked:
 		var mouse_position = get_viewport().get_mouse_position()
 		global_position = mouse_position + Vector2(0, 40)
-		z_as_relative = false
-		z_index = VisualServer.CANVAS_ITEM_Z_MAX
 
 
 func slide_to(target_pos):
