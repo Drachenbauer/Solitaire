@@ -35,8 +35,8 @@ func set_card_type():
 
 
 func storage_flip_open():
-	var parent =  get_tree().root.get_child(1).flip_open
-	change_parent(G.flip_open_stack, parent)
+	var flip_open =  get_tree().root.get_child(1).flip_open
+	change_parent(G.flip_open_stack, flip_open)
 	add_to_stack(G.flip_open_stack)
 	show_front()
 
@@ -50,10 +50,11 @@ func hold_card():
 
 
 func release_card():
+	var targets = get_tree().root.get_child(1).targets
+	var bottoms = get_tree().root.get_child(1).bottoms
 	var mouse_position = get_viewport().get_mouse_position()
 	
 	for stack_id in G.target_stacks:
-		var targets = get_tree().root.get_child(1).targets
 		var stack = G.target_stacks[stack_id]
 		var bool_1 = mouse_position.x > targets[stack_id].global_position.x - 37
 		var bool_2 = mouse_position.x < targets[stack_id].global_position.x + 37
@@ -71,7 +72,6 @@ func release_card():
 						return
 	
 	for stack in G.bottom_stacks:
-		var bottoms = get_tree().root.get_child(1).bottoms
 		var stack_id = G.bottom_stacks.find(stack)
 		var bool_1
 		var bool_2
@@ -114,9 +114,8 @@ func release_card():
 					values_to_default()
 					return
 	
-	if !old_pos == null:
-		slide_to(old_pos)
-		values_to_default()
+	slide_to(old_pos)
+	values_to_default()
 
 
 func send_to_target():
