@@ -35,7 +35,7 @@ func set_card_type():
 
 
 func storage_flip_open():
-	var parent =  get_tree().get_nodes_in_group(\"table\")[0].flip_open
+	var parent =  get_tree().root.get_child(1).flip_open
 	change_parent(G.flip_open_stack, parent)
 	add_to_stack(G.flip_open_stack)
 	show_front()
@@ -53,7 +53,7 @@ func release_card():
 	var mouse_position = get_viewport().get_mouse_position()
 	
 	for stack_id in G.target_stacks:
-		var targets = get_tree().get_nodes_in_group(\"table\")[0].targets
+		var targets = get_tree().root.get_child(1).targets
 		var stack = G.target_stacks[stack_id]
 		var bool_1 = mouse_position.x > targets[stack_id].global_position.x - 37
 		var bool_2 = mouse_position.x < targets[stack_id].global_position.x + 37
@@ -71,7 +71,7 @@ func release_card():
 						return
 	
 	for stack in G.bottom_stacks:
-		var bottoms = get_tree().get_nodes_in_group(\"table\")[0].bottoms
+		var bottoms = get_tree().root.get_child(1).bottoms
 		var stack_id = G.bottom_stacks.find(stack)
 		var bool_1
 		var bool_2
@@ -121,7 +121,7 @@ func release_card():
 
 func send_to_target():
 	for stack_id in G.target_stacks:
-		var targets = get_tree().get_nodes_in_group(\"table\")[0].targets
+		var targets = get_tree().root.get_child(1).targets
 		var stack = G.target_stacks[stack_id]
 		
 		if suit == stack_id:

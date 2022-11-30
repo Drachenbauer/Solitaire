@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://assets/style/Style.tres" type="Theme" id=1]
 [ext_resource path="res://assets/graphics/suits 1.png" type="Texture" id=2]
+[ext_resource path="res://scenes/StackButtons.tscn" type="PackedScene" id=3]
 
 [sub_resource type="GDScript" id=1]
 script/source = "extends Node2D
@@ -14,40 +15,13 @@ onready var storage = $Deck/Storage
 onready var flip_open = $Deck/FlipOpen
 onready var targets = {\"h\" : $Deck/TargetHearts, \"d\" : $Deck/TargetDiamonds, \"s\" : $Deck/TargetSpades, \"c\" : $Deck/TargetClubs}
 onready var bottoms = [$Deck/Bottom1, $Deck/Bottom2, $Deck/Bottom3, $Deck/Bottom4, $Deck/Bottom5, $Deck/Bottom6, $Deck/Bottom7]
-onready var storage_button = $StackButtons/StorageButton
-onready var flip_open_button = $StackButtons/FlipOpenButton
-onready var target_buttons = {$StackButtons/TargetHeartsButton : G.target_stacks[\"h\"],
-								$StackButtons/TargetDiamondsButton : G.target_stacks[\"d\"],
-								$StackButtons/TargetSpadesButton : G.target_stacks[\"s\"],
-								$StackButtons/TargetClubsButton : G.target_stacks[\"c\"]}
-onready var bottom_buttons ={$StackButtons/BottomButton1 : G.bottom_stacks[0],
-							$StackButtons/BottomButton2 : G.bottom_stacks[1],
-							$StackButtons/BottomButton3 : G.bottom_stacks[2],
-							$StackButtons/BottomButton4 : G.bottom_stacks[3],
-							$StackButtons/BottomButton5 : G.bottom_stacks[4],
-							$StackButtons/BottomButton6 : G.bottom_stacks[5],
-							$StackButtons/BottomButton7 : G.bottom_stacks[6],}
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	connect_button_signals()
 	generate_deck()
 	shuffle_deck()
 	put_deck_on_storage()
 	deal_bottom_stacks()
-
-
-func connect_button_signals():
-	
-	for button in get_tree().get_nodes_in_group(\"target_buttons\"):
-		button.connect(\"button_down\", self, \"_on_TargetButton_button_down\", [button])
-		button.connect(\"mouse_entered\", self, \"_on_TargetButton_mouse_entered\", [button])
-	
-	for button in get_tree().get_nodes_in_group(\"bottom_buttons\"):
-		button.connect(\"button_down\", self, \"_on_BottomButton_button_down\", [button])
-		button.connect(\"pressed\", self, \"_on_BottomButton_button_pressed\", [button])
-		button.connect(\"gui_input\", self, \"_on_BottomButton_gui_input\", [button])
-
 
 
 func generate_deck():
@@ -107,146 +81,6 @@ func deal_bottom_stacks():
 			
 			if i == stack_id:
 				card.show_front()
-
-
-func _process(_delta):
-	for button in bottom_buttons:
-		bottom_button_set_cursor(button)
-		
-	if Input.is_action_just_released(\"click\"):
-		if G.is_holding_card:
-			for card in get_tree().get_nodes_in_group(\"cards\"):
-				if card.is_picked:
-					card.release_card()
-
-
-func _on_StorageButton_pressed():
-	if !G.is_card_sliding:
-		if G.storage_stack.size() > 0:
-			G.storage_stack[G.storage_stack.size() - 1].storage_flip_open()
-		else:
-			cards_back_to_storage()
-
-
-func _on_FlipOpenButton_button_down():
-	if !G.is_card_sliding:
-		if G.flip_open_stack.size() > 0:
-			var card = G.flip_open_stack[G.flip_open_stack.size() - 1]
-			card.hold_card()
-
-
-func _on_TargetButton_button_down(button):
-	if !G.is_card_sliding:
-		var stack = target_buttons[button]
-		if stack.size() > 0:
-			stack[stack.size() - 1].hold_card()
-
-
-func _on_BottomButton_button_down(button):
-	if !G.is_card_sliding:
-		var stack = bottom_buttons[button]
-		var mouse_position = get_viewport().get_mouse_position()
-		
-		if stack.size() > 0:
-			for card in stack:
-				var bool_1 = mouse_position.y > card.global_position.y - 49
-				var bool_2 = mouse_position.y < card.global_position.y - 31
-				
-				if card == stack[stack.size() - 1]:
-					bool_2 = mouse_position.y < card.global_position.y + 49
-				
-				if bool_1 && bool_2:
-					if card.is_open:
-						card.hold_card()
-
-
-func _on_BottomButton_button_pressed(button):
-	if !G.is_card_sliding:
-		var stack = bottom_buttons[button]
-		var mouse_position = get_viewport().get_mouse_position()
-		var card = stack[stack.size() - 1]
-		
-		if stack.size() > 0:
-			var bool_1 = mouse_position.y > card.global_position.y - 49
-			var bool_2 = mouse_position.y < card.global_position.y + 49
-			
-			if bool_1 && bool_2:
-				if !card.is_open:
-					card.show_front()
-
-
-func _on_FlipOpenButton_gui_input(event):
-	if event is InputEventMouseButton && event.doubleclick:
-		var card = G.flip_open_stack[G.flip_open_stack.size() - 1]
-		card.send_to_target()
-
-
-func _on_BottomButton_gui_input(event, button):
-	if event is InputEventMouseButton && event.doubleclick:
-		var stack = bottom_buttons[button]
-		var mouse_position = get_viewport().get_mouse_position()
-		
-		if stack.size() > 0:
-			var card = stack[stack.size() - 1]
-			var bool_1 = mouse_position.y > card.global_position.y - 49
-			var bool_2 = mouse_position.y < card.global_position.y + 49
-			
-			if bool_1 && bool_2:
-				if card.is_open:
-					card.send_to_target()
-
-
-func _on_StorageButton_mouse_entered():
-	if G.storage_stack.size() + G.flip_open_stack.size() > 0:
-		storage_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	else:
-		storage_button.mouse_default_cursor_shape = Control.CURSOR_ARROW
-
-func _on_FlipOpenButton_mouse_entered():
-	if G.flip_open_stack.size() > 0:
-		flip_open_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	else:
-		flip_open_button.mouse_default_cursor_shape = Control.CURSOR_ARROW
-
-func _on_TargetButton_mouse_entered(button):
-	var stack = target_buttons[button]
-	
-	if stack.size() > 0:
-		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	else:
-		button.mouse_default_cursor_shape = Control.CURSOR_ARROW
-
-
-func bottom_button_set_cursor(button):
-	var stack = bottom_buttons[button]
-	var mouse_position = get_viewport().get_mouse_position()
-	
-	if stack.size() > 0:
-		var last_card = stack[stack.size() - 1]
-		
-		for card in stack:
-			var bool_1 = mouse_position.y > card.global_position.y - 49
-			var bool_2 = mouse_position.y < card.global_position.y - 31
-			
-			if card == last_card:
-				bool_2 = mouse_position.y < card.global_position.y + 49
-			
-			if bool_1 && bool_2:
-				if card.is_open || card == last_card:
-					button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-				else:
-					button.mouse_default_cursor_shape = Control.CURSOR_ARROW
-
-
-func cards_back_to_storage():
-	G.storage_stack = G.flip_open_stack.duplicate()
-	G.flip_open_stack.clear()
-	G.storage_stack.invert()
-	
-	for card in G.storage_stack:
-		card.change_parent(G.storage_stack, storage)
-		card.show_back()
-		card.containing_stack = G.storage_stack
 "
 
 [node name="Game" type="Node2D" groups=["table"]]
@@ -383,88 +217,4 @@ position = Vector2( 520, 128 )
 [node name="Bottom7" type="Node2D" parent="Deck"]
 position = Vector2( 623, 128 )
 
-[node name="StackButtons" type="Node2D" parent="."]
-
-[node name="StorageButton" type="TextureButton" parent="StackButtons"]
-margin_left = 16.0
-margin_top = 16.0
-margin_right = 88.0
-margin_bottom = 112.0
-
-[node name="FlipOpenButton" type="TextureButton" parent="StackButtons"]
-margin_left = 120.0
-margin_top = 16.0
-margin_right = 192.0
-margin_bottom = 112.0
-
-[node name="TargetHeartsButton" type="TextureButton" parent="StackButtons" groups=["target_buttons"]]
-margin_left = 328.0
-margin_top = 16.0
-margin_right = 400.0
-margin_bottom = 112.0
-
-[node name="TargetDiamondsButton" type="TextureButton" parent="StackButtons" groups=["target_buttons"]]
-margin_left = 432.0
-margin_top = 16.0
-margin_right = 504.0
-margin_bottom = 112.0
-
-[node name="TargetSpadesButton" type="TextureButton" parent="StackButtons" groups=["target_buttons"]]
-margin_left = 536.0
-margin_top = 16.0
-margin_right = 608.0
-margin_bottom = 112.0
-
-[node name="TargetClubsButton" type="TextureButton" parent="StackButtons" groups=["target_buttons"]]
-margin_left = 640.0
-margin_top = 16.0
-margin_right = 712.0
-margin_bottom = 112.0
-
-[node name="BottomButton1" type="TextureButton" parent="StackButtons" groups=["bottom_buttons"]]
-margin_left = 16.0
-margin_top = 144.0
-margin_right = 88.0
-margin_bottom = 512.0
-
-[node name="BottomButton2" type="TextureButton" parent="StackButtons" groups=["bottom_buttons"]]
-margin_left = 120.0
-margin_top = 144.0
-margin_right = 192.0
-margin_bottom = 512.0
-
-[node name="BottomButton3" type="TextureButton" parent="StackButtons" groups=["bottom_buttons"]]
-margin_left = 224.0
-margin_top = 144.0
-margin_right = 296.0
-margin_bottom = 512.0
-
-[node name="BottomButton4" type="TextureButton" parent="StackButtons" groups=["bottom_buttons"]]
-margin_left = 328.0
-margin_top = 144.0
-margin_right = 400.0
-margin_bottom = 512.0
-
-[node name="BottomButton5" type="TextureButton" parent="StackButtons" groups=["bottom_buttons"]]
-margin_left = 432.0
-margin_top = 144.0
-margin_right = 504.0
-margin_bottom = 512.0
-
-[node name="BottomButton6" type="TextureButton" parent="StackButtons" groups=["bottom_buttons"]]
-margin_left = 536.0
-margin_top = 144.0
-margin_right = 608.0
-margin_bottom = 512.0
-
-[node name="BottomButton7" type="TextureButton" parent="StackButtons" groups=["bottom_buttons"]]
-margin_left = 640.0
-margin_top = 144.0
-margin_right = 712.0
-margin_bottom = 512.0
-
-[connection signal="mouse_entered" from="StackButtons/StorageButton" to="." method="_on_StorageButton_mouse_entered"]
-[connection signal="pressed" from="StackButtons/StorageButton" to="." method="_on_StorageButton_pressed"]
-[connection signal="button_down" from="StackButtons/FlipOpenButton" to="." method="_on_FlipOpenButton_button_down"]
-[connection signal="gui_input" from="StackButtons/FlipOpenButton" to="." method="_on_FlipOpenButton_gui_input"]
-[connection signal="mouse_entered" from="StackButtons/FlipOpenButton" to="." method="_on_FlipOpenButton_mouse_entered"]
+[node name="StackButtons" parent="." instance=ExtResource( 3 )]
