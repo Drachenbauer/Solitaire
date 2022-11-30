@@ -130,6 +130,7 @@ func send_to_target():
 				change_parent(stack, targets[stack_id])
 				add_to_stack(stack)
 				values_to_default()
+				G.is_card_sliding = false
 
 
 func show_front():

@@ -118,7 +118,7 @@ func _on_BottomButton_gui_input(event, button):
 				var card = stack[stack.size() - 1]
 				var bool_1 = mouse_position.y > card.global_position.y - 49
 				var bool_2 = mouse_position.y < card.global_position.y + 49
-			
+				
 				if bool_1 && bool_2:
 					if card.is_open:
 						card.send_to_target()
