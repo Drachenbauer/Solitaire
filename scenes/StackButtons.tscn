@@ -175,7 +175,6 @@ func cards_back_to_storage():
 		card.change_parent(G.storage_stack, get_tree().root.get_child(1).storage)
 		card.show_back()
 		card.containing_stack = G.storage_stack
-
 "
 
 [node name="StackButtons" type="Node2D"]

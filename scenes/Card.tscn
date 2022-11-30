@@ -120,8 +120,9 @@ func release_card():
 
 
 func send_to_target():
+	var targets = get_tree().root.get_child(1).targets
+	
 	for stack_id in G.target_stacks:
-		var targets = get_tree().root.get_child(1).targets
 		var stack = G.target_stacks[stack_id]
 		
 		if suit == stack_id:
