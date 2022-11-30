@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://assets/style/Style.tres" type="Theme" id=1]
 [ext_resource path="res://assets/graphics/suits 1.png" type="Texture" id=2]
 [ext_resource path="res://scenes/StackButtons.tscn" type="PackedScene" id=3]
+[ext_resource path="res://assets/style/courbd.ttf" type="DynamicFontData" id=4]
 
 [sub_resource type="GDScript" id=1]
 script/source = "extends Node2D
@@ -15,6 +16,7 @@ onready var storage = $Deck/Storage
 onready var flip_open = $Deck/FlipOpen
 onready var targets = {\"h\" : $Deck/TargetHearts, \"d\" : $Deck/TargetDiamonds, \"s\" : $Deck/TargetSpades, \"c\" : $Deck/TargetClubs}
 onready var bottoms = [$Deck/Bottom1, $Deck/Bottom2, $Deck/Bottom3, $Deck/Bottom4, $Deck/Bottom5, $Deck/Bottom6, $Deck/Bottom7]
+onready var solved = $Solved
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -82,6 +84,12 @@ func deal_bottom_stacks():
 			if i == stack_id:
 				card.show_front()
 "
+
+[sub_resource type="DynamicFont" id=2]
+size = 60
+outline_size = 6
+outline_color = Color( 0, 0, 0, 1 )
+font_data = ExtResource( 4 )
 
 [node name="Game" type="Node2D" groups=["table"]]
 script = SubResource( 1 )
@@ -218,3 +226,15 @@ position = Vector2( 520, 128 )
 position = Vector2( 623, 128 )
 
 [node name="StackButtons" parent="." instance=ExtResource( 3 )]
+
+[node name="Solved" type="Label" parent="."]
+visible = false
+margin_left = 104.0
+margin_top = 232.0
+margin_right = 624.0
+margin_bottom = 312.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 2 )
+text = "Solved!!!"
+align = 1
+valign = 1

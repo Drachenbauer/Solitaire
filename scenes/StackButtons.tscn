@@ -62,7 +62,7 @@ func _on_FlipOpenButton_button_down():
 
 
 func _on_TargetButton_button_down(button):
-	if !G.is_card_sliding:
+	if !G.is_card_sliding && !G.is_solved():
 		var stack = target_buttons[button]
 		if stack.size() > 0:
 			stack[stack.size() - 1].hold_card()
@@ -90,9 +90,9 @@ func _on_BottomButton_button_pressed(button):
 	if !G.is_card_sliding:
 		var stack = bottom_buttons[button]
 		var mouse_position = get_viewport().get_mouse_position()
-		var card = stack[stack.size() - 1]
 		
 		if stack.size() > 0:
+			var card = stack[stack.size() - 1]
 			var bool_1 = mouse_position.y > card.global_position.y - 49
 			var bool_2 = mouse_position.y < card.global_position.y + 49
 			
