@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://assets/style/Style.tres" type="Theme" id=1]
-[ext_resource path="res://assets/graphics/suits 1.png" type="Texture" id=2]
+[ext_resource path="res://assets/graphics/suits/suits_1.png" type="Texture" id=2]
 [ext_resource path="res://scenes/StackButtons.tscn" type="PackedScene" id=3]
 [ext_resource path="res://assets/style/courbd.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://scenes/Options.tscn" type="PackedScene" id=5]
 
 [sub_resource type="GDScript" id=1]
 script/source = "extends Node2D
@@ -11,19 +12,59 @@ script/source = "extends Node2D
 
 # Declare member variables here:
 onready var card_path = preload(\"Card.tscn\")
+onready var target_icons = {\"h\" : $Background/Panel3/Hearts,
+							\"d\" : $Background/Panel4/Diamonds,
+							\"s\" : $Background/Panel5/Spades,
+							\"c\" : $Background/Panel6/Clubs}
 onready var deck = $Deck
 onready var storage = $Deck/Storage
 onready var flip_open = $Deck/FlipOpen
-onready var targets = {\"h\" : $Deck/TargetHearts, \"d\" : $Deck/TargetDiamonds, \"s\" : $Deck/TargetSpades, \"c\" : $Deck/TargetClubs}
-onready var bottoms = [$Deck/Bottom1, $Deck/Bottom2, $Deck/Bottom3, $Deck/Bottom4, $Deck/Bottom5, $Deck/Bottom6, $Deck/Bottom7]
+onready var targets = {\"h\" : $Deck/TargetHearts,
+						\"d\" : $Deck/TargetDiamonds,
+						\"s\" : $Deck/TargetSpades,
+						\"c\" : $Deck/TargetClubs}
+onready var bottoms = [$Deck/Bottom1,
+						$Deck/Bottom2,
+						$Deck/Bottom3,
+						$Deck/Bottom4,
+						$Deck/Bottom5,
+						$Deck/Bottom6,
+						$Deck/Bottom7]
 onready var solved = $Solved
+onready var options = $Options
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	cleanup()
 	generate_deck()
 	shuffle_deck()
 	put_deck_on_storage()
 	deal_bottom_stacks()
+
+
+func cleanup():
+	set_target_icon_texture()
+	
+	for card in get_tree().get_nodes_in_group(\"cards\"):
+		card.queue_free()
+	
+	G.storage_stack.clear()
+	G.flip_open_stack.clear()
+	
+	for stack_id in G.target_stacks:
+		var stack = G.target_stacks[stack_id] 
+		stack.clear()
+	
+	for stack in G.bottom_stacks:
+		stack.clear()
+	
+	G.is_card_sliding = false
+
+
+func set_target_icon_texture():
+	for icon_id in target_icons:
+		var icon = target_icons[icon_id]
+		icon.texture = load(G.suits_texture_path)
 
 
 func generate_deck():
@@ -83,6 +124,13 @@ func deal_bottom_stacks():
 			
 			if i == stack_id:
 				card.show_front()
+
+
+func new_game():
+	var error = get_tree().reload_current_scene()
+	
+	if error != 0:
+		print(error)
 "
 
 [sub_resource type="DynamicFont" id=2]
@@ -238,3 +286,6 @@ custom_fonts/font = SubResource( 2 )
 text = "Solved!!!"
 align = 1
 valign = 1
+
+[node name="Options" parent="." instance=ExtResource( 5 )]
+visible = false

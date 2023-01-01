@@ -1,0 +1,302 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://assets/style/Style.tres" type="Theme" id=1]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Control
+
+
+# Declare member variables here:
+var character_card_icons
+var num_identifiers
+var deck_number
+var suits_style
+var back_side
+
+onready var type_button_1 = $Panel/Panel/TypeButton1
+onready var type_button_2 = $Panel/Panel/TypeButton2
+onready var identifier_button_1 = $Panel/Panel/IdentifierButton1
+onready var identifier_button_2 = $Panel/Panel/IdentifierButton2
+onready var deck_button = $Panel/Panel/DeckButton
+onready var back_button = $Panel/Panel/BackButton
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	if !G.is_settings_loaded:
+		load_settings_from_file()
+		G.is_settings_loaded = true
+	
+	character_card_icons = G.character_card_icons
+	num_identifiers = G.num_identifiers
+	deck_number = G.deck_number
+	suits_style = G.suits_style
+	back_side = G.back_side
+	
+	if character_card_icons == \"classic\":
+		type_button_1.pressed = true
+	else:
+		type_button_2.pressed = true
+	
+	if num_identifiers == 2:
+		identifier_button_1.pressed = true
+	else:
+		identifier_button_2.pressed = true
+	
+	for i in 18:
+		deck_button.add_item(\"Deck \" + String(i + 1))
+	
+	deck_button.select(deck_number - 1)
+	
+	for i in G.back_filenames.size():
+		var itemname = G.back_filenames[i].capitalize()
+		back_button.add_item(itemname)
+	
+	back_button.select(G.back_filenames.find(back_side))
+	
+
+
+func _on_TypeButton1_pressed():
+	type_button_2.pressed = false
+	character_card_icons = \"classic\"
+
+
+func _on_TypeButton2_pressed():
+	type_button_1.pressed = false
+	character_card_icons = \"kite\"
+
+
+func _on_IdentifierButton1_pressed():
+	identifier_button_2.pressed = false
+	num_identifiers = 2
+
+
+func _on_IdentifierButton2_pressed():
+	identifier_button_1.pressed = false
+	num_identifiers = 4
+
+
+func _on_DeckButton_item_selected(index):
+	deck_number = index + 1
+	
+	if deck_number <= 5 || (deck_number >= 10 && deck_number <= 14):
+		suits_style = 1
+	elif deck_number == 6 || deck_number == 15:
+		suits_style = 2
+	else:
+		suits_style = 3
+
+
+func _on_BackButton_item_selected(index):
+	back_side = G.back_filenames[index]
+
+
+func _on_CancelButton_pressed():
+	character_card_icons = G.character_card_icons
+	num_identifiers = G.num_identifiers
+	deck_number = G.deck_number
+	suits_style = G.suits_style
+	back_side = G.back_side
+	close()
+
+
+func _on_NewGameButton_pressed():
+	G.character_card_icons = character_card_icons
+	G.num_identifiers = num_identifiers
+	G.deck_number = deck_number
+	G.suits_style = suits_style
+	G.back_side = back_side
+	G.deck_texture_path = \"res://assets/graphics/decks/\" + G.character_card_icons + \"/\" + String(G.num_identifiers) + \"_identifiers/deck_\" + String(G.deck_number) + \".png\"
+	G.suits_texture_path = \"res://assets/graphics/suits/suits_\" + String(G.suits_style) + \".png\"
+	G.back_texture_path = \"res://assets/graphics/backs/\" + back_side + \".png\"
+	save_settings()
+	close()
+	get_tree().root.get_child(1).new_game()
+
+
+func _on_OKButton_pressed():
+	G.character_card_icons = character_card_icons
+	G.num_identifiers = num_identifiers
+	G.deck_number = deck_number
+	G.suits_style = suits_style
+	G.back_side = back_side
+	G.deck_texture_path = \"res://assets/graphics/decks/\" + G.character_card_icons + \"/\" + String(G.num_identifiers) + \"_identifiers/deck_\" + String(G.deck_number) + \".png\"
+	G.suits_texture_path = \"res://assets/graphics/suits/suits_\" + String(G.suits_style) + \".png\"
+	G.back_texture_path = \"res://assets/graphics/backs/\" + back_side + \".png\"
+	get_tree().root.get_child(1).set_target_icon_texture()
+	
+	for card in get_tree().get_nodes_in_group(\"cards\"):
+		card.set_card_type()
+	
+	save_settings()
+	close()
+
+
+func close():
+	hide()
+	G.is_options_open = false
+
+
+func load_settings_from_file():
+	if G.file.file_exists(\"user://save.txt\"):
+		G.file.open(\"user://save.txt\", File.READ)
+		G.data = parse_json(G.file.get_line())
+		G.file.close()
+		G.character_card_icons = G.data[\"character_card_icons\"]
+		G.num_identifiers = G.data[\"num_identifiers\"]
+		G.deck_number = G.data[\"deck_number\"]
+		G.suits_style = G.data[\"suits_style\"]
+		G.back_side = G.data[\"back_side\"]
+		G.deck_texture_path = \"res://assets/graphics/decks/\" + G.character_card_icons + \"/\" + String(G.num_identifiers) + \"_identifiers/deck_\" + String(G.deck_number) + \".png\"
+		G.suits_texture_path = \"res://assets/graphics/suits/suits_\" + String(G.suits_style) + \".png\"
+		G.back_texture_path = \"res://assets/graphics/backs/\" + G.back_side + \".png\"
+
+
+func save_settings():
+	G.data[\"character_card_icons\"] = G.character_card_icons
+	G.data[\"num_identifiers\"] = G.num_identifiers
+	G.data[\"deck_number\"] = G.deck_number
+	G.data[\"suits_style\"] = G.suits_style
+	G.data[\"back_side\"] = G.back_side
+	G.file.open(\"user://save.txt\", File.WRITE)
+	G.file.store_line(to_json(G.data))
+	G.file.close()
+"
+
+[node name="Options" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 108.0
+margin_right = -108.0
+margin_bottom = -128.0
+theme = ExtResource( 1 )
+script = SubResource( 1 )
+
+[node name="Panel" type="Panel" parent="."]
+margin_right = 512.0
+margin_bottom = 384.0
+
+[node name="Label" type="Label" parent="Panel"]
+margin_left = 64.0
+margin_top = 16.0
+margin_right = 448.0
+margin_bottom = 48.0
+text = "Deck-Options"
+align = 1
+valign = 1
+
+[node name="Panel" type="Panel" parent="Panel"]
+margin_left = 32.0
+margin_top = 64.0
+margin_right = 480.0
+margin_bottom = 320.0
+
+[node name="Label" type="Label" parent="Panel/Panel"]
+margin_left = 32.0
+margin_top = 32.0
+margin_right = 416.0
+margin_bottom = 64.0
+text = "Character-Card-Type"
+align = 1
+valign = 1
+
+[node name="TypeButton1" type="Button" parent="Panel/Panel"]
+margin_left = 32.0
+margin_top = 64.0
+margin_right = 224.0
+margin_bottom = 96.0
+toggle_mode = true
+text = "Classic"
+
+[node name="TypeButton2" type="Button" parent="Panel/Panel"]
+margin_left = 224.0
+margin_top = 64.0
+margin_right = 416.0
+margin_bottom = 96.0
+toggle_mode = true
+text = "Kite"
+
+[node name="Label2" type="Label" parent="Panel/Panel"]
+margin_left = 32.0
+margin_top = 96.0
+margin_right = 416.0
+margin_bottom = 128.0
+text = "Number Identifyers"
+align = 1
+valign = 1
+
+[node name="IdentifierButton1" type="Button" parent="Panel/Panel"]
+margin_left = 32.0
+margin_top = 128.0
+margin_right = 224.0
+margin_bottom = 160.0
+toggle_mode = true
+text = "2"
+
+[node name="IdentifierButton2" type="Button" parent="Panel/Panel"]
+margin_left = 224.0
+margin_top = 128.0
+margin_right = 416.0
+margin_bottom = 160.0
+toggle_mode = true
+text = "4"
+
+[node name="Label3" type="Label" parent="Panel/Panel"]
+margin_left = 32.0
+margin_top = 160.0
+margin_right = 224.0
+margin_bottom = 192.0
+text = "Color-Theme"
+align = 1
+valign = 1
+
+[node name="DeckButton" type="OptionButton" parent="Panel/Panel"]
+margin_left = 32.0
+margin_top = 192.0
+margin_right = 224.0
+margin_bottom = 224.0
+
+[node name="Label4" type="Label" parent="Panel/Panel"]
+margin_left = 224.0
+margin_top = 160.0
+margin_right = 416.0
+margin_bottom = 192.0
+text = "Backside"
+align = 1
+valign = 1
+
+[node name="BackButton" type="OptionButton" parent="Panel/Panel"]
+margin_left = 224.0
+margin_top = 192.0
+margin_right = 416.0
+margin_bottom = 224.0
+
+[node name="CancelButton" type="Button" parent="Panel"]
+margin_left = 32.0
+margin_top = 336.0
+margin_right = 159.0
+margin_bottom = 368.0
+text = "Cancel"
+
+[node name="NewGameButton" type="Button" parent="Panel"]
+margin_left = 192.0
+margin_top = 336.0
+margin_right = 319.0
+margin_bottom = 368.0
+text = "new Game"
+
+[node name="OKButton" type="Button" parent="Panel"]
+margin_left = 352.0
+margin_top = 336.0
+margin_right = 479.0
+margin_bottom = 368.0
+text = "OK"
+
+[connection signal="pressed" from="Panel/Panel/TypeButton1" to="." method="_on_TypeButton1_pressed"]
+[connection signal="pressed" from="Panel/Panel/TypeButton2" to="." method="_on_TypeButton2_pressed"]
+[connection signal="pressed" from="Panel/Panel/IdentifierButton1" to="." method="_on_IdentifierButton1_pressed"]
+[connection signal="pressed" from="Panel/Panel/IdentifierButton2" to="." method="_on_IdentifierButton2_pressed"]
+[connection signal="item_selected" from="Panel/Panel/DeckButton" to="." method="_on_DeckButton_item_selected"]
+[connection signal="item_selected" from="Panel/Panel/BackButton" to="." method="_on_BackButton_item_selected"]
+[connection signal="pressed" from="Panel/CancelButton" to="." method="_on_CancelButton_pressed"]
+[connection signal="pressed" from="Panel/NewGameButton" to="." method="_on_NewGameButton_pressed"]
+[connection signal="pressed" from="Panel/OKButton" to="." method="_on_OKButton_pressed"]

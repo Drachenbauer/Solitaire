@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://assets/graphics/decks/kite/2_corner_icons/deck_5.png" type="Texture" id=1]
-[ext_resource path="res://assets/graphics/back.png" type="Texture" id=2]
+[ext_resource path="res://assets/graphics/decks/classic/2_identifiers/deck_1.png" type="Texture" id=1]
+[ext_resource path="res://assets/graphics/backs/classic_1.png" type="Texture" id=2]
 
 [sub_resource type="GDScript" id=1]
 script/source = "extends Node2D
@@ -31,7 +31,9 @@ func _process(_delta):
 
 func set_card_type():
 	var region_pos = id * CARD_SIZE
+	front.texture = load(G.deck_texture_path)
 	front.region_rect = Rect2(region_pos, CARD_SIZE)
+	back.texture = load(G.back_texture_path)
 
 
 func storage_flip_open():
@@ -46,7 +48,6 @@ func hold_card():
 	z_as_relative = false
 	z_index = VisualServer.CANVAS_ITEM_Z_MAX
 	is_picked = true
-	G.is_holding_card = true
 
 
 func release_card():
@@ -169,7 +170,6 @@ func values_to_default():
 	z_as_relative = true
 	z_index = 0
 	is_picked = false
-	G.is_holding_card = false
 
 
 func follow_mouse():
@@ -207,7 +207,7 @@ shape = SubResource( 2 )
 [node name="Front" type="Sprite" parent="."]
 texture = ExtResource( 1 )
 region_enabled = true
-region_rect = Rect2( 0, 0, 72, 96 )
+region_rect = Rect2( 841, 38, 0, 0 )
 
 [node name="Back" type="Sprite" parent="."]
 texture = ExtResource( 2 )

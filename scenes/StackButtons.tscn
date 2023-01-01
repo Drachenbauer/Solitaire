@@ -40,14 +40,17 @@ func _process(_delta):
 		bottom_button_set_cursor(button)
 		
 	if Input.is_action_just_released(\"click\"):
-		if G.is_holding_card:
-			for card in get_tree().get_nodes_in_group(\"cards\"):
-				if card.is_picked:
-					card.release_card()
+		for card in get_tree().get_nodes_in_group(\"cards\"):
+			if card.is_picked:
+				card.release_card()
+	
+	if Input.is_action_just_pressed(\"options\"):
+		G.is_options_open = true
+		get_tree().root.get_child(1).options.show()
 
 
 func _on_StorageButton_pressed():
-	if !G.is_card_sliding:
+	if !G.is_card_sliding && !G.is_options_open:
 		if G.storage_stack.size() > 0:
 			G.storage_stack[G.storage_stack.size() - 1].storage_flip_open()
 		else:
@@ -55,21 +58,21 @@ func _on_StorageButton_pressed():
 
 
 func _on_FlipOpenButton_button_down():
-	if !G.is_card_sliding:
+	if !G.is_card_sliding && !G.is_options_open:
 		if G.flip_open_stack.size() > 0:
 			var card = G.flip_open_stack[G.flip_open_stack.size() - 1]
 			card.hold_card()
 
 
 func _on_TargetButton_button_down(button):
-	if !G.is_card_sliding && !G.is_solved():
+	if !G.is_card_sliding && !G.is_options_open && !G.is_solved():
 		var stack = target_buttons[button]
 		if stack.size() > 0:
 			stack[stack.size() - 1].hold_card()
 
 
 func _on_BottomButton_button_down(button):
-	if !G.is_card_sliding:
+	if !G.is_card_sliding && !G.is_options_open:
 		var stack = bottom_buttons[button]
 		var mouse_position = get_viewport().get_mouse_position()
 		
@@ -87,7 +90,7 @@ func _on_BottomButton_button_down(button):
 
 
 func _on_BottomButton_button_pressed(button):
-	if !G.is_card_sliding:
+	if !G.is_card_sliding && !G.is_options_open:
 		var stack = bottom_buttons[button]
 		var mouse_position = get_viewport().get_mouse_position()
 		
@@ -102,26 +105,28 @@ func _on_BottomButton_button_pressed(button):
 
 
 func _on_FlipOpenButton_gui_input(event):
-	if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
-		if event.doubleclick:
-			var card = G.flip_open_stack[G.flip_open_stack.size() - 1]
-			card.send_to_target()
+	if !G.is_options_open:
+		if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
+			if event.doubleclick:
+				var card = G.flip_open_stack[G.flip_open_stack.size() - 1]
+				card.send_to_target()
 
 
 func _on_BottomButton_gui_input(event, button):
-	if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
-		if event.doubleclick:
-			var stack = bottom_buttons[button]
-			var mouse_position = get_viewport().get_mouse_position()
-			
-			if stack.size() > 0:
-				var card = stack[stack.size() - 1]
-				var bool_1 = mouse_position.y > card.global_position.y - 49
-				var bool_2 = mouse_position.y < card.global_position.y + 49
+	if !G.is_options_open:
+		if event is InputEventMouseButton && event.button_index == BUTTON_LEFT:
+			if event.doubleclick:
+				var stack = bottom_buttons[button]
+				var mouse_position = get_viewport().get_mouse_position()
 				
-				if bool_1 && bool_2:
-					if card.is_open:
-						card.send_to_target()
+				if stack.size() > 0:
+					var card = stack[stack.size() - 1]
+					var bool_1 = mouse_position.y > card.global_position.y - 49
+					var bool_2 = mouse_position.y < card.global_position.y + 49
+					
+					if bool_1 && bool_2:
+						if card.is_open:
+							card.send_to_target()
 
 
 func _on_StorageButton_mouse_entered():
